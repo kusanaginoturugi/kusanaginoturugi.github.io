@@ -15,7 +15,7 @@ Gnucashとはフリーの財務ソフトウェアです。
 
 とりあえず7日後は必要ないので、7を1に変えてビルドしなおして今日のところは気持ち良く作業を進めたいと思います。(実はこの場所を探すのにえらく手間取りました)
 
-src/gnome-utils/dialog-utils.c
+    src/gnome-utils/dialog-utils.c
         /*
          * Check those keys where the code does different things depending
          * upon the modifiers.
@@ -32,8 +32,8 @@ src/gnome-utils/dialog-utils.c
             else if (event->state & GDK_CONTROL_MASK)
                 g_date_add_years (&gdate, 1);
             else
-    	    g_date_add_days (&gdate, 1);
+            g_date_add_days (&gdate, 1);
             g_date_to_struct_tm (&gdate, tm);
-    	return TRUE;
+      return TRUE;
 
-<http://gnucash.sourcearchive.com/documentation/1:2.4.2-1ubuntu1/dialog-utils_8c_source.html>
+[gnucash-source]: http://gnucash.sourcearchive.com/documentation/1:2.4.2-1ubuntu1/dialog-utils_8c_source.html

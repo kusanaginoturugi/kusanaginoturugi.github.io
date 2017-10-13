@@ -1,0 +1,65 @@
+---
+layout: post
+title:  "Rinse in Computar"
+date:   2017-10-12 15:26:12 +0900
+categories: コンピュータ
+---
+
+# 過去の開発環境が壊れてしまう
+
+調子よく開発して、リリースして、さて次の開発といったところで、
+過去のコードから自由でいられるほど、プログラマーは自由でない。
+
+一年もすると、開発時のコードはおろか、開発環境まで忘れてしまう
+ものです。
+
+「ありゃ、データベース何つかったっけ？」
+「え、バージョン上ってら」
+「こんな古いruby使ってんじゃねーよ!」
+
+とかなるものです。
+
+開発環境は仮想化して保存しておきましょう。
+
+# で、Rinseって？
+
+debootstrap やら pacstrap と同じものです。ここでピンとこない人にはメリットは少ないでしょう。以下の実例をご覧ください。
+
+    % pacaur -S rinse
+    % rinse --list-distributions
+    The following distributions are available:
+    centos-4
+    centos-5
+    centos-6
+    centos-7
+    fedora-10
+    fedora-12
+    fedora-13
+    fedora-14
+    fedora-15
+    fedora-16
+    fedora-18
+    fedora-19
+    fedora-7
+    fedora-8
+    fedora-9
+    fedora-core-4
+    fedora-core-5
+    fedora-core-6
+    opensuse-10.1
+    opensuse-10.2
+    opensuse-10.3
+    opensuse-11.0
+    opensuse-11.1
+    opensuse-11.2
+    opensuse-11.3
+    opensuse-12.1
+    opensuse-12.3
+    opensuse-13.1
+    rhel-5
+    slc-5
+    slc-6
+    % sudo mkdir /srv/container/centos6
+    % sudo rinse --directory=/srv/container/centos6 --distribution=centos-6 --arch=amd64
+
+で、あとはchrootして起動スクリプト(があれば)を起動して完了。

@@ -1,0 +1,108 @@
+---
+layout: post
+title:  "VirtualBoxからKVM/QEMUに移行した"
+date:   2017-10-11 15:26:12 +0900
+categories: コンピュータ
+---
+
+# 前準備
+
+QEMU, libvert をインストールする
+
+    $ sudo pacman -S qemu libvirt virt-viewer
+
+[KVM - ArchWiki][kvm-archwiki] を参考にKVMサポートを確認する。
+
+    $ lscpu
+    $ egrep --color=auto 'vmx|svm|0xc0f' /proc/cpuinfo
+    $ zgrep CONFIG_KVM /proc/config.gz
+    $ zgrep VIRTIO /proc/config.gz
+    $ lsmod | grep kvm
+    $ lsmod | grep virtio
+
+私の場合、カーネルモジュールの virtio が入っていなかったので以下のコマンドでロードした
+
+    $ sudo modprobe virtio
+
+# Windows10をインストールしてみる
+
+試しにWindows10をクリーンインストールしてみる。
+
+    $ virt-install --name windows10 --memory 4096 --vcpus=1,maxvcpus=1 --cpu host --cdrom $HOME/iso/Win10_1703_Japanese_x64.iso --disk size=32,format=qcow2 --network user --virt-type kvm
+
+ネットワークはブリッジネットワークを作っておいてから、
+
+    --network bridge=br0
+
+としておけばよかったのかも。
+
+インストールが終ったら、
+
+    $ virsh list --all
+    Id     名前                         状態
+    ----------------------------------------------------
+     -     windows10                      シャットオフ
+
+おお、できてる。じゃ、起動するか
+
+    $ virsh start windows10
+
+起動した画面にアタッチ
+
+    $ virt-viewer windows10
+
+# イメージの変換
+
+vdiイメージをqcow2に変換する
+
+    sudo qemu-img convert -O qcow2 ~/VirtualBox\ VMs/t440s_threshold/t440s_threshold.vdi ~/.local/share/libvirt/images/t440s_threshold.qcow2
+
+このイメージは78GBもあったので、変換にはそれなりの時間とCPUを使用した。仕事中に開始するんじゃなかったorz。
+
+# おい、起動用の設定ファイルはどうするでえ？
+
+    $ virsh list --all                                                                  ~
+     Id    名前                         状態
+     ----------------------------------------------------
+      -     windows10                      シャットオフ
+
+予想できたことだが、仮想イメージファイルを変換しただけで、設定ファイルもよろしくやってくれたりはしなかった。
+先に作成しておいたwindows10の設定ファイルは「~/.config/libvirt/qemu/windows10.xml」にあるので、これをコピーして使っちゃおう。
+
+    mv ~/.config/libvirt/qemu/windows10.xml ~/.config/libvirt/qemu/t440s_threshold.xml
+
+    $ virsh list --all
+    Id    名前                         状態
+    ----------------------------------------------------
+     -     windows10                      シャットオフ
+
+おや、なにも変らない。uuidが同じだとマズいのか？とりあえず変えてみる
+
+    $ virsh list --all
+    Id    名前                         状態
+    ----------------------------------------------------
+     -     windows10                      シャットオフ
+     -     t440s_threshold                シャットオフ
+
+よっしゃ。
+
+    $ virsh start t440s_threshold
+    エラー: ドメイン t440s_threshold の起動に失敗しました
+    エラー: internal error: process exited while connecting to monitor: 2017-10-11T08:05:14.940997Z qemu-system-x86_64: -chardev pty,id=charserial0: char device redirected to /dev/pts/7 (label charserial0)
+    2017-10-11T08:05:14.953303Z qemu-system-x86_64: -drive file=/home/onoue/.local/share/libvirt/images/t440s_threshold.qcow2,format=qcow2,if=none,id=drive-ide0-0-0: Could not open '/home/onoue/.local/share/libvirt/images/t440s_threshold.qcow2': Permission denied
+
+パーミッションがおかしいらしい
+
+    sudo chown -R onoue:onoue ~/.local/share/libvirt/images/t440s_threshold.qcow2
+    sudo chmod 600 ~/.local/share/libvirt/images/t440s_threshold.qcow2
+
+これでいけるはず
+
+    $ virsh start t440s_threshold
+    ドメイン t440s_threshold が起動されました
+
+おーけーおーけー。後は、virt-viewer を起動すれば接続完了
+
+    $ virt-viewer t440s_threshold
+
+[kvm-archwiki]: https://wiki.archlinux.jp/index.php/KVM

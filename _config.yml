@@ -20,6 +20,7 @@ github_username:  kusanaginoturugi
 # Build settings
 markdown: kramdown
 
-google_analytics: 
+google_analytics:
 show_downloads: true
-theme: jekyll-theme-minimal
+#theme: jekyll-theme-minimal
+theme: jekyll-theme-hacker
